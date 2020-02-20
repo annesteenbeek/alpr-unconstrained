@@ -1,6 +1,6 @@
 #!/bin/bash
 
-check_file() 
+check_file()
 {
 	if [ ! -f "$1" ]
 	then
@@ -10,7 +10,7 @@ check_file()
 	fi
 }
 
-check_dir() 
+check_dir()
 {
 	if [ ! -d "$1" ]
 	then
@@ -101,6 +101,7 @@ python gen-outputs.py $input_dir $output_dir > $csv_file
 # Clean files and draw output
 rm $output_dir/*_lp.png
 rm $output_dir/*car.png
-rm $output_dir/*_cars.txt
-rm $output_dir/*_lp.txt
-rm $output_dir/*_str.txt
+rm $output_dir/*output.png
+# rm $output_dir/*_cars.txt
+# rm $output_dir/*_lp.txt
+# rm $output_dir/*_str.txt

@@ -1,0 +1,16 @@
+version: "2.3"
+
+services:
+  vehicle:
+    image: tensorflow/serving:latest-gpu
+    volumes:
+      - type: bind
+        source: ../data/yolov3-spp-savedmodel
+        target: /models/yolov3-spp-savedmodel
+    container_name: vehicle-detector
+    runtime: nvidia
+    ports:
+      - 8500:8500 # HTTP/REST API
+      - 8501:8501 # gRPC
+    environment:
+      MODEL_NAME: yolov3-spp-savedmodel
