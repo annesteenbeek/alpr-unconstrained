@@ -37,8 +37,8 @@ with tf.Session(graph=tf.Graph()) as sess:
     tensor = lambda x: g.get_tensor_by_name('%s:0' % x.name)
     sigs[signature_constants.DEFAULT_SERVING_SIGNATURE_DEF_KEY] = \
         tf.saved_model.signature_def_utils.predict_signature_def(
-            {x.name:tensor(x) for x in inputs},
-            {y.name:tensor(y) for y in outputs})
+            {x.name:tensor(x) for x in inputs if x.type != u'NoOp'},
+            {y.name:tensor(y) for y in outputs if y.type != u'NoOp'})
 
     builder.add_meta_graph_and_variables(sess,
                                          [tag_constants.SERVING],
