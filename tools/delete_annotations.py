@@ -1,6 +1,7 @@
 from argparse import ArgumentParser
 from ConfigParser import ConfigParser
 from json import loads
+from pdb import set_trace as breakpoint
 from tqdm import tqdm
 
 import requests
@@ -9,6 +10,7 @@ import requests
 def parse():
     ap = ArgumentParser()
     ap.add_argument('config')
+    ap.add_argument('dataset_id', type=int)
     return ap.parse_args()
 
 def main(args):
@@ -31,6 +33,8 @@ def main(args):
         url_pattern += '%d'
         pbar.desc = 'deleting annotations'
         for annotation in annotation_json:
+            if annotation['dataset_id'] != args.dataset_id:
+                continue
             del_req = requests.delete(url_pattern % annotation['id'],
                                       cookies=login_request.cookies)
             del_req2 = requests.delete(url_pattern2,

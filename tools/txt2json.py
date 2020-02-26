@@ -191,9 +191,9 @@ class Annotation(Entity):
     def read(path, image, category):
         annotations = []
         with open(path) as f:
-            for l in f:
+            for index, l in enumerate(f):
                 tokens = l.strip().split()
-                index = tokens.pop(0)
+                tokens.pop(0)   # class index
                 r_bbox = list(map(float, tokens))
                 # yolo offset from center
                 r_bbox[0] -= r_bbox[2] / 2

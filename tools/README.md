@@ -1,78 +1,85 @@
-# install
+# Install
 `bash install.sh`
 
-# extract frames
 
-## darknet uses images files as network input
-as a walk around, we convert darknet to tensorflow
+# Building an Inference Server(WIP)
 
-## freeze darknet as tensorflow pb
-use this [repo](https://github.com/mystic123/tensorflow-yolo-v3)
-`python convert_weights_pb.py --class_names data/yolov3-spp/coco.names --data_format NHWC --weights_file data/yolov3-spp/yolov3-spp.weights --spp`
+Darknet uses images files as network input, which is slow. In addition, there'are some difficulties when using the default models in Darknet on GPU's.
 
-## build saved models
-`python tools/pb2savedmodel.py data/yolov3-spp/frozen_darknet_yolov3_model.pb data/yolov3-spp/1`
-### view saved model
-`saved_model_cli show --dir data/yolov3-spp/1 --all`
-> MetaGraphDef with tag-set: 'serve' contains the following SignatureDefs:
-signature_def['serving_default']:
-  The given SavedModel SignatureDef contains the following input(s):
-    inputs['inputs'] tensor_info:
-        dtype: DT_FLOAT
-        shape: (-1, 416, 416, 3)
-        name: inputs:0
-  The given SavedModel SignatureDef contains the following output(s):
-    outputs['output_boxes'] tensor_info:
-        dtype: DT_FLOAT
-        shape: (-1, 10647, 85)
-        name: output_boxes:0
-  Method name is: tensorflow/serving/predict
+As a walk around, we convert *Darknet* models into the *TensorFlow* format.
+The details are in the `servable` subfolder.
 
-## DarkFlow
 
-## tensorflow serving
-`docker-compose up`
+# Getting Structured LPR Data from Videos and Images
+Vehicles' location, plates' location and license numbers are acquired when processing the raw data with the LPR model. We use this information to assist data annotation.
+
+## preparation
+- If there's any video, extract frames from it.
 
 ```bash
-bash video_batch.sh ${YOUR_VIDEO_PATH}
+bash video_batch.sh ${YOUR_VIDEO_DIR}
 ```
-# run LPR
-```bash
-bash batch_lpr.sh ${YOUR_IMAGE_FOLDER}
-```
-# flatten nested folders
-perform once for the images folder;
-and the other for the text file folder
+
+- Make sure images' names are unique.
+
 ```bash
 for i in `ls`;do
   for j in `ls $i`;do
-    mv $i/$j ${i}_$j;
+    if [[ ${j} != *"IMG"* ]];then
+      mv "$i/$j" "$i/${i}_$j";
+    fi
   done;
-  rm -d $i
+  echo "$i done"
 done
 ```
-# set up coco annotator
-`docker-compose -f docker-compose.dev.yml up`
-create a dataset `lpr0218`
-move images to the ./datasets/lpr0218
+
+## run LPR
+
+An Image folder has subfolders that hold images.
+
+```bash
+bash batch_lpr.sh ${YOUR_IMAGE_FOLDER}
+```
+
+
+# Annotation
+
+## set up coco annotator
+1. `docker-compose -f docker-compose.dev.yml up`
+2. open the web client, register a user, write a `login.ini` configuration file like the following:
+  >[coco-annotator]
+  address = localhost
+  port = 8080
+  username = hibike
+  password = euphonium
+
+3. create a dataset `${your_dataset}`
+4. move some images to the `./datasets/${your_dataset}`
 
 <!-- # remove database from coco annotator
 `docker-compose down`
 `docker volume prune` -->
-# generate annotation
+## generate annotation
 ```bash
-python txt2json.py
-python txt2json.py # twice to ensure liscense plates are uploaded to the DB
+python txt2json.py ${login.ini} ${txt_dir} ${dataset_id}
+# wait until all tasks are finished in the web client
+python txt2json.py ${login.ini} ${txt_dir} ${dataset_id}
+# twice to ensure liscense plates are uploaded to the DB
 ```
 download the JSON file after manual check
 
-# get applicable images
+## get applicable images
 ```bash
 python tools/useful_images.py ${YOUR_ANNOTATION_JSON_FILE}
 ```
-# extract LP data for training
+
+
+# Training Models(TBD)
+
+## extract LP data for training
 extract LP localization from the JSON file
 in the folder `samples/train-detector`
+
 ## LP detector
   ```bash
   python train-detector.py \
@@ -85,6 +92,7 @@ in the folder `samples/train-detector`
     -its 300000 \
     -bs 64
   ```
+
 ## LP recognizer
 ### prepare training data
   tackle OCR as a detection task
