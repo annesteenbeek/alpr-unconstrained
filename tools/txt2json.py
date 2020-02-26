@@ -3,6 +3,7 @@ from ConfigParser import ConfigParser
 from glob import glob
 from io import BytesIO
 from json import loads, dumps
+from os import walk, linesep
 from os.path import exists, join
 from pdb import set_trace as breakpoint
 from random import randint
@@ -16,10 +17,16 @@ def parse():
     ap.add_argument('config')
     ap.add_argument('txt_dir')
     ap.add_argument('dataset_id', type=int)
+    ap.add_argument('--trash_bin', default='images_of_no_use.txt')
     return ap.parse_args()
 
 
 def main(args):
+    text_file_map = {}
+    for root, dirs, files in walk(args.txt_dir, topdown=False):
+        for name in files:
+            text_file_map[name] = join(root, name)
+
     url, auth_cookies = login(args.config)
 
     dataset = {'images':[], 'categories':[], 'annotations':[]}
@@ -36,7 +43,7 @@ def main(args):
     page = 1
     pages = None
     url_pattern = url + '/api/image/?page=%d&per_page=50'
-    url_new = url + '/api/annotation/'
+    trash_bin = open(args.trash_bin, 'w')
     with tqdm(unit='pages', leave=False, desc='annotating images') as pbar:
         while 1:
             thing_request = requests.get(url_pattern % page, cookies=auth_cookies)
@@ -56,14 +63,25 @@ def main(args):
                     continue
                 image_name = i['file_name']
                 annot_name = image_name.replace('.jpg', '_cars.txt')
-                annot_path = join(args.txt_dir, annot_name)
-                if not exists(annot_path):
+                try:
+                    annot_path = text_file_map[annot_name]
+                except KeyError:
+                    Warning('no car found in %s, deleting the image' % image_name)
+                    reg_delete(trash_bin, image_name)
                     continue
                 im = Image(**i)
-                dataset['images'].append(im.__dict__)
+                has_plate = False
                 for a in Annotation.read(annot_path, im, categories[0]):
-                    dataset['annotations'].append(a.__dict__)
+                    if a.metadata['name'] != 'null':
+                        dataset['annotations'].append(a.__dict__)
+                        has_plate = True
+                if has_plate:
+                    dataset['images'].append(im.__dict__)
+                else:
+                    Warning('{} has no plate'.format(image_name))
+                    reg_delete(trash_bin, image_name)
             upload(url, auth_cookies, dataset_id, dataset)    # per page
+    trash_bin.close()
 
 
 def login(config_path):
@@ -89,6 +107,19 @@ def upload(url, auth, dataset_id, dataset):
     assert coco_req.status_code == 200, coco_req.text
     dataset['images'] = []
     dataset['annotations'] = []
+
+
+def reg_delete(file, image_name):
+    file.write(image_name+linesep)
+    # print(image_name, file=file)
+    # del_req = requests.post(url + '/api/image/%d' % image_id, cookies=auth)
+    # assert del_req.status_code == 200, del_req.text
+    #
+    # del_req2 = requests.delete(url + '/api/undo/',
+    #                            cookies=auth,
+    #                            params={'id':image_id,
+    #                                    'instance':'image'})
+    # assert del_req2.status_code == 200, del_req2.text
 
 
 class Entity(object):

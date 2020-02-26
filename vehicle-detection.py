@@ -15,15 +15,19 @@ from darknet.python.darknet import detect
 if __name__ == '__main__':
 
 	try:
-	
+
 		input_dir  = sys.argv[1]
 		output_dir = sys.argv[2]
 
 		vehicle_threshold = .5
 
-		vehicle_weights = 'data/vehicle-detector/yolo-voc.weights'
-		vehicle_netcfg  = 'data/vehicle-detector/yolo-voc.cfg'
-		vehicle_dataset = 'data/vehicle-detector/voc.data'
+		# vehicle_weights = 'data/vehicle-detector/yolo-voc.weights'
+		# vehicle_netcfg  = 'data/vehicle-detector/yolo-voc.cfg'
+		# vehicle_dataset = 'data/vehicle-detector/voc.data'
+
+		vehicle_weights = 'data/yolov3-spp/yolov3-spp.weights'
+		vehicle_netcfg  = 'data/yolov3-spp/yolov3-spp.cfg'
+		vehicle_dataset = 'data/yolov3-spp/coco.data'
 
 		vehicle_net  = dn.load_net(vehicle_netcfg, vehicle_weights, 0)
 		vehicle_meta = dn.load_meta(vehicle_dataset)
@@ -44,7 +48,7 @@ if __name__ == '__main__':
 
 			R,_ = detect(vehicle_net, vehicle_meta, img_path ,thresh=vehicle_threshold)
 
-			R = [r for r in R if r[0] in ['car','bus']]
+			R = [r for r in R if r[0] in ['car','bus', 'truck']]
 
 			print '\t\t%d cars found' % len(R)
 
@@ -73,4 +77,3 @@ if __name__ == '__main__':
 		sys.exit(1)
 
 	sys.exit(0)
-	
