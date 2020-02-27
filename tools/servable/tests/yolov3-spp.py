@@ -10,7 +10,7 @@ def main():
     assert image_np_org is not None
 
     h, w = image_np_org.shape[:2]
-    scale = max(h, w) / 416
+    scale = max(h, w) / 416.
     if h > w:
         p = h - w
         image_np_pad = np.pad(image_np_org, [(0, 0), (0, p), (0, 0)], 'constant', constant_values=0)

@@ -4,6 +4,7 @@ import cv2
 import sys
 
 from glob import glob
+from pdb import set_trace as pause
 
 
 def im2single(I):
@@ -18,7 +19,7 @@ def getWH(shape):
 def IOU(tl1,br1,tl2,br2):
 	wh1,wh2 = br1-tl1,br2-tl2
 	assert((wh1>=.0).all() and (wh2>=.0).all())
-	
+
 	intersection_wh = np.maximum(np.minimum(br1,br2) - np.maximum(tl1,tl2),0.)
 	intersection_area = np.prod(intersection_wh)
 	area1,area2 = (np.prod(wh1),np.prod(wh2))
@@ -38,7 +39,7 @@ def nms(Labels,iou_threshold=.5):
 
 	SelectedLabels = []
 	Labels.sort(key=lambda l: l.prob(),reverse=True)
-	
+
 	for label in Labels:
 
 		non_overlap = True
@@ -82,7 +83,7 @@ def crop_region(I,label,bg=0.5):
 	outsize = (outwh[1],outwh[0],ch) if ch > 1 else (outwh[1],outwh[0])
 	if (np.array(outsize) < 0).any():
 		pause()
-	Iout  = np.zeros(outsize,dtype=I.dtype) + bg
+	Iout  = np.zeros(outsize, dtype=I.dtype) + bg
 
 	offset 	= np.minimum(tl,0)*(-1)
 	tl 		= np.maximum(tl,0)
@@ -101,7 +102,7 @@ def hsv_transform(I,hsv_modifier):
 def IOU(tl1,br1,tl2,br2):
 	wh1,wh2 = br1-tl1,br2-tl2
 	assert((wh1>=.0).all() and (wh2>=.0).all())
-	
+
 	intersection_wh = np.maximum(np.minimum(br1,br2) - np.maximum(tl1,tl2),0.)
 	intersection_area = np.prod(intersection_wh)
 	area1,area2 = (np.prod(wh1),np.prod(wh2))
