@@ -1,4 +1,4 @@
-# Server side models
+# Server-side Models
 
 This folder holds code to build models that are compatible with the tensorflow serving infrastructure. Here we assume all models have been converted into the `.pb` format.
 
@@ -18,12 +18,20 @@ wget https://pjreddie.com/media/files/yolov3-spp.weights
 
 A object detection model trained with COCO dataset often predicts 80 categories of object. Plus the 2 coordinates, 2 shapes and 1 object score for each box. Let's prepare the class name file `coco.names` from [here](https://raw.githubusercontent.com/pjreddie/darknet/master/data/coco.names)
 
-We use this [repo](https://github.com/mystic123/tensorflow-yolo-v3) to convert the Darknet model into TensorFlow model. Then build a serving model from that. A demo is provided with the repo, and we can verify that the conversion succeeds.
+We use this [repository](https://github.com/mystic123/tensorflow-yolo-v3) to convert the Darknet model into TensorFlow model. Then build a serving model from that. A demo is provided with the repository, and we can verify that the conversion succeeds.
 
-Upon successful conversion, we run the script `serverable/yolov3-spp.py` to build a server-side model.
+```bash
+python convert_weights_pb.py \
+  --class_names coco.names \
+  --data_format NHWC \
+  --weights_file yolov3-spp.weights \
+  --spp
+```
+
+Upon successful conversion, we run the script `servable/yolov3-spp.py` to build a server-side model.
 
 ```sh
-python tools/serverable/yolov3-spp.py \
+python tools/servable/yolov3-spp.py \
   data/yolov3-spp/frozen_darknet_yolov3_model.pb \
   data/yolov3-spp/1 \
   data/yolov3-spp/coco.names
@@ -40,10 +48,10 @@ data/yolov3-spp/
 └── yolov3-spp.weights
 ```
 
-## WPOD Net
-A Keras model with tensorflow backend. TBD
+## WPOD-Net
+A Keras model with TensorFlow backend. TBD
 
-## OCR Net
+## OCR-Net
 A Darknet model. TBD
 
 
@@ -75,3 +83,33 @@ with tf.Graph().as_default() as g_combined:
     z, = tf.import_graph_def(gdef_2, input_map={"input:0": y},
                              return_elements=["output:0"]
 ```
+
+
+### view saved model
+`saved_model_cli show --dir data/yolov3-spp/1 --all`
+> MetaGraphDef with tag-set: 'serve' contains the following SignatureDefs:
+signature_def['serving_default']:
+  The given SavedModel SignatureDef contains the following input(s):
+    inputs['inputs'] tensor_info:
+        dtype: DT_FLOAT
+        shape: (-1, 416, 416, 3)
+        name: inputs:0
+  The given SavedModel SignatureDef contains the following output(s):
+    outputs['output_boxes'] tensor_info:
+        dtype: DT_FLOAT
+        shape: (-1, 10647, 85)
+        name: output_boxes:0
+  Method name is: tensorflow/serving/predict
+
+## DarkFlow
+install [darkflow](https://github.com/thtrieu/darkflow) and convert the ocr net to tensorflow saved model
+`./flow --model ocr/ocr-net.cfg --load ocr/ocr-net.weights --labels ocr/ocr-net.names --savepb`
+
+## keras to saved model
+```bash
+folder="data/lp-detector"
+python tools/keras2savedModels.py "$folder/wpod-net_update1" "$folder/1"
+```
+
+## tensorflow serving
+`docker-compose up`

@@ -20,6 +20,13 @@ Vehicles' location, plates' location and license numbers are acquired when proce
 bash video_batch.sh ${YOUR_VIDEO_DIR}
 ```
 
+- Rotate images if necessary
+```bash
+for image in `ls`; do
+  ffmpeg -y -i ${image} -vf "rotate=PI" ${image}
+done
+```
+
 - Make sure images' names are unique.
 
 ```bash
@@ -68,9 +75,13 @@ python txt2json.py ${login.ini} ${txt_dir} ${dataset_id}
 ```
 download the JSON file after manual check
 
-## get applicable images
+## build data sets
+
 ```bash
-python tools/useful_images.py ${YOUR_ANNOTATION_JSON_FILE}
+python tools/json2dataset.py \
+  ${ANNOTATION_FILE_IN_JSON} \
+  ${IMAGE_FOLDER} \
+  ${export_dir}
 ```
 
 
@@ -86,11 +97,7 @@ in the folder `samples/train-detector`
     --model data/lp-detector \
     --name my-trained-model \
     --train-dir 'samples/train-detector' \
-    --output-dir models/my-trained-model/ \
-    -op Adam \
-    -lr .001 \
-    -its 300000 \
-    -bs 64
+    --output-dir models/my-trained-model/
   ```
 
 ## LP recognizer
