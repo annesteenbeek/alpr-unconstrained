@@ -49,14 +49,36 @@ data/yolov3-spp/
 ```
 
 ## WPOD-Net
-A Keras model with TensorFlow backend. TBD
+A Keras model with TensorFlow backend. We use the following script to build serving models from the ones in Keras.
+
+```bash
+  python tools/servable/wpod-net.py \
+    data/lp-detector/wpod-net_update1 \
+    data/lp-detector/1
+```
+
+The models should look like:
+```
+data/lp-detector/
+├── 1
+│   ├── saved_model.pb
+│   └── variables
+├── wpod-net_update1.h5
+└── wpod-net_update1.json
+```
+
+Use the CLI command to inspect the inputs and outputs:
+`saved_model_cli show --dir data/lp-detector/1 --all`
 
 ## OCR-Net
 A Darknet model. TBD
 
 
-# Integration
-TBD
+# Launch the service
+use the command:
+`docker-compose up`
+
+Then we can run the scripts in the `test` folder to see the performance of each serving model.
 
 
 # Appendix
@@ -83,33 +105,6 @@ with tf.Graph().as_default() as g_combined:
     z, = tf.import_graph_def(gdef_2, input_map={"input:0": y},
                              return_elements=["output:0"]
 ```
-
-
-### view saved model
-`saved_model_cli show --dir data/yolov3-spp/1 --all`
-> MetaGraphDef with tag-set: 'serve' contains the following SignatureDefs:
-signature_def['serving_default']:
-  The given SavedModel SignatureDef contains the following input(s):
-    inputs['inputs'] tensor_info:
-        dtype: DT_FLOAT
-        shape: (-1, 416, 416, 3)
-        name: inputs:0
-  The given SavedModel SignatureDef contains the following output(s):
-    outputs['output_boxes'] tensor_info:
-        dtype: DT_FLOAT
-        shape: (-1, 10647, 85)
-        name: output_boxes:0
-  Method name is: tensorflow/serving/predict
-
 ## DarkFlow
 install [darkflow](https://github.com/thtrieu/darkflow) and convert the ocr net to tensorflow saved model
 `./flow --model ocr/ocr-net.cfg --load ocr/ocr-net.weights --labels ocr/ocr-net.names --savepb`
-
-## keras to saved model
-```bash
-folder="data/lp-detector"
-python tools/keras2savedModels.py "$folder/wpod-net_update1" "$folder/1"
-```
-
-## tensorflow serving
-`docker-compose up`

@@ -1,0 +1,28 @@
+version: "2.3"
+
+services:
+
+  lpr_nn_service:
+
+    build:
+      context: ./
+      dockerfile: dockerfile
+
+    volumes:
+      - type: bind
+        source: ../../data/
+        target: /models/
+
+    container_name: lpr_serving
+
+    runtime: nvidia
+
+    ports:
+      - 8500:8500
+      - 8501:8501
+
+    entrypoint:
+      - tensorflow_model_server
+      - --model_config_file=config.proto
+      - --port=8500
+      - --rest_api_port=8501

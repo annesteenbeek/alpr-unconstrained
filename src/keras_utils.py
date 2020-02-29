@@ -8,6 +8,8 @@ from os.path import splitext
 from src.label import Label
 from src.utils import getWH, nms
 from src.projection_utils import getRectPts, find_T_matrix
+from tensorflow.keras.models import model_from_json
+
 
 
 class DLabel (Label):
@@ -24,17 +26,17 @@ def save_model(model,path,verbose=0):
 	with open('%s.json' % path,'w') as json_file:
 		json_file.write(model_json)
 	model.save_weights('%s.h5' % path)
-	if verbose: print 'Saved to %s' % path
+	if verbose:
+		print( 'Saved to %s' % path)
 
 def load_model(path,custom_objects={},verbose=0):
-	from keras.models import model_from_json
 
 	path = splitext(path)[0]
 	with open('%s.json' % path,'r') as json_file:
 		model_json = json_file.read()
 	model = model_from_json(model_json, custom_objects=custom_objects)
 	model.load_weights('%s.h5' % path)
-	if verbose: print 'Loaded from %s' % path
+	if verbose: print( 'Loaded from %s' % path)
 	return model
 
 
@@ -93,12 +95,12 @@ def reconstruct(Iorig,I,Y,out_size,threshold=.9):
 			TLps.append(Ilp)
 
 	return final_labels,TLps
-	
+
 
 def detect_lp(model,I,max_dim,net_step,out_size,threshold):
 
 	min_dim_img = min(I.shape[:2])
-	factor 		= float(max_dim)/min_dim_img
+	factor 		= float(max_dim) // min_dim_img
 
 	w,h = (np.array(I.shape[1::-1],dtype=float)*factor).astype(int).tolist()
 	w += (w%net_step!=0)*(net_step - w%net_step)

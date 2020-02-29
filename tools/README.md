@@ -85,20 +85,36 @@ python tools/json2dataset.py \
 ```
 
 
-# Training Models(TBD)
+# Training Models(WIP)
 
 ## extract LP data for training
 extract LP localization from the JSON file
 in the folder `samples/train-detector`
 
 ## LP detector
-  ```bash
-  python train-detector.py \
-    --model data/lp-detector \
-    --name my-trained-model \
-    --train-dir 'samples/train-detector' \
-    --output-dir models/my-trained-model/
-  ```
+  We use `docker` to save us from configuring GPU's to work with TensorFlow
+
+  1. enter in the docker container
+    ```bash
+    docker run -it \
+      --runtime=nvidia \
+      -v $(pwd):/workspace \
+      -v ${PATH_TO_YOUR_TRAINING}/data \
+      tensorflow/tensorflow:1.15.2-gpu \
+      bash
+    ```
+
+  2. go to the project root folder mounted by the container
+    `cd workspace`
+
+  3. start training with the following command
+    ```bash
+    python train-detector.py \
+      --model data/lp-detector \
+      --name my-trained-model \
+      --train-dir /data \
+      --output-dir models/my-trained-model/
+    ```
 
 ## LP recognizer
 ### prepare training data

@@ -1,0 +1,12 @@
+model_config_list {
+  config {
+    name: "vehicle_detector",
+    base_path: "/models/yolov3-spp",
+    model_platform: "tensorflow"
+  },
+  config {
+    name: "plate_detector",
+    base_path: "/models/lp-detector",
+    model_platform: "tensorflow"
+  }
+}
