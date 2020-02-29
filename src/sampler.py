@@ -12,7 +12,7 @@ def labels2output_map(label,lppts,dim,stride):
 
 	side = ((float(dim) + 40.)/2.)/stride # 7.75 when dim = 208 and stride = 16
 
-	outsize = dim/stride
+	outsize = int(dim / stride)
 	Y  = np.zeros((outsize,outsize,2*4+1),dtype='float32')
 	MN = np.array([outsize,outsize])
 	WH = np.array([dim,dim],dtype=float)
@@ -71,7 +71,7 @@ def augment_sample(I,pts,dim):
 
 	whratio = random.uniform(2.,4.)
 	wsiz = random.uniform(dim*.2,dim*1.)
-	
+
 	hsiz = wsiz/whratio
 
 	dx = random.uniform(0.,dim - wsiz)
@@ -85,7 +85,7 @@ def augment_sample(I,pts,dim):
 	H = np.matmul(H,T)
 
 	Iroi,pts = project(I,H,pts,dim)
-	
+
 	hsv_mod = np.random.rand(3).astype('float32')
 	hsv_mod = (hsv_mod - .5)*.3
 	hsv_mod[0] *= 360
