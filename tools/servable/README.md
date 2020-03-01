@@ -71,7 +71,36 @@ Use the CLI command to inspect the inputs and outputs:
 `saved_model_cli show --dir data/lp-detector/1 --all`
 
 ## OCR-Net
-A Darknet model. TBD
+A Darknet model.
+
+1. install [darkflow](https://github.com/thtrieu/darkflow) and convert the ocr net to tensorflow model in `.pb` format.
+  ```bash
+  ./flow \
+    --model ocr/ocr-net.cfg \
+    --load ocr/ocr-net.weights \
+    --labels ocr/ocr-net.names \
+    --savepb
+  ```
+
+2. convert the graph model to the format of serving with the script in the `servable` folder
+  ```bash
+  python tools/servable/ocr-net.py \
+    darkflow/built_graph/ocr-net.pb \
+    data/ocr/1 \
+    data/ocr/ocr-net.names
+  ```
+
+The models should look like:
+```
+data/ocr/
+├── 1
+│   ├── saved_model.pb
+│   └── variables
+├── ocr-net.cfg
+├── ocr-net.data
+├── ocr-net.names
+└── ocr-net.weights
+```
 
 
 # Launch the service
@@ -79,32 +108,3 @@ use the command:
 `docker-compose up`
 
 Then we can run the scripts in the `test` folder to see the performance of each serving model.
-
-
-# Appendix
-Useful snippets for building nested models in `GraphDef`
-
-## load `.pb` models
-```python
-with tf.gfile.GFile(model_filepath, 'rb') as f:
-    graph_def = tf.GraphDef()
-    graph_def.ParseFromString(f.read())
-```
-
-## assemble models
-```python
-with tf.Graph().as_default() as g_combined:
-    x = tf.placeholder(tf.float32, name="")
-
-    # Import gdef_1, which performs f(x).
-    # "input:0" and "output:0" are the names of tensors in gdef_1.
-    y, = tf.import_graph_def(gdef_1, input_map={"input:0": x},
-                             return_elements=["output:0"])
-
-    # Import gdef_2, which performs g(y)
-    z, = tf.import_graph_def(gdef_2, input_map={"input:0": y},
-                             return_elements=["output:0"]
-```
-## DarkFlow
-install [darkflow](https://github.com/thtrieu/darkflow) and convert the ocr net to tensorflow saved model
-`./flow --model ocr/ocr-net.cfg --load ocr/ocr-net.weights --labels ocr/ocr-net.names --savepb`
