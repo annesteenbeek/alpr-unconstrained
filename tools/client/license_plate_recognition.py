@@ -5,12 +5,14 @@ import numpy as np
 import requests
 
 from dataclasses import dataclass
+from plate_knowledge import is_valid
 
 
 @dataclass
 class Text:
     content: str
     confidence_lst: list
+    is_valid: bool = False
 
 
 @dataclass
@@ -174,7 +176,10 @@ class PlateDetection:
             keypoints = np.array(results['corners'], np.float32)[0]
             plate = Plate(*[KeyPoint(*pt) for pt in keypoints.T], set_scores[0])
             harmo_mtx = cv2.getPerspectiveTransform(keypoints.T, self.rect_ref_pts)
+            # cv2.imshow('v', image)
+            # np.save('homograph.npy', harmo_mtx)
             image_rect = cv2.warpPerspective(image, harmo_mtx, self.out_size)
+            # cv2.imshow('p', image_rect)
             return plate, image_rect
 
 
@@ -185,6 +190,16 @@ class PlateRecognition:
         self.max_outputs = int(cfg['max_outputs'])
         self.address = cfg['address'] + '/v1/models/ocr:predict'
         self.alpha = float(cfg['alpha'])
+        self.names = np.array([l.strip() for l in open(cfg['names_file'])])
+        prior_csv = cfg.get('prior_csv')
+        num_names = len(self.names)
+        if prior_csv is None:
+            self.prior_mtx = np.ones([num_names, self.max_outputs]) / num_names
+        else:
+            self.prior_mtx = np.genfromtxt(prior_csv, np.float32, delimiter=',')
+            self.prior_mtx /= np.maximum(1, self.prior_mtx.sum(0, keepdims=True))
+        self.prior_mtx = self.prior_mtx.T  # [max_outputs, names] format
+        self._range = np.arange(self.max_outputs)
 
     def __call__(self, image):
         image_b = cv2.imencode('.jpg', image)[1]
@@ -196,10 +211,28 @@ class PlateRecognition:
         response = requests.post(self.address, json={'inputs': inputs})
         assert response.status_code == 200, response.text
         results = json.loads(response.text)['outputs']
-        boxes = np.array(results['detection_boxes'])
+        boxes = np.array(results['detection_boxes'], np.float32)
         class_names = np.array(results['detection_class_names'])
         class_confidence = np.array(results['detection_class_confidence'])
+        class_confidence_all = np.array(results['detection_class_confidence_all'])
         # object_scores = results['detection_object_scores']
-        center = boxes.reshape([-1, 2, 2]).mean(1)
-        sorting = np.argsort(center[:, 0] + self.alpha * center[:, 1])
-        return Text(''.join(class_names[sorting]), class_confidence[sorting])
+        if len(boxes):
+            # sort by spatial order
+            center = boxes.reshape([-1, 2, 2]).mean(1)
+            sorting = np.argsort(center[:, 0] + self.alpha * center[:, 1])
+            if len(boxes) == self.max_outputs:
+                class_confidence_all = class_confidence_all[sorting]
+                indices = self.maximize_a_posterior(class_confidence_all)
+                text = ''.join(self.names[indices])
+                return Text(text,
+                            class_confidence_all[self._range, indices], 
+                            is_valid(text))
+            else:
+                return Text(''.join(class_names[sorting]),
+                            class_confidence[sorting])
+
+    def maximize_a_posterior(self, likelihood_mtx):
+        # use naive bayesian method
+        posterior = likelihood_mtx * self.prior_mtx
+        assign = np.argmax(posterior, 1)
+        return assign

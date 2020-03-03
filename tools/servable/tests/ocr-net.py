@@ -6,7 +6,7 @@ import requests
 
 
 def main():
-    image_np_org = cv2.imread('samples/ocr/03016_0car_lp.png')
+    image_np_org = cv2.imread('samples/ocr/p_screenshot_02.03.2020srgan.png')
     assert image_np_org is not None
     image_b = cv2.imencode('.jpg', image_np_org)[1]
 
@@ -16,7 +16,7 @@ def main():
                   'image_b':{
                       'b64':base64.b64encode(image_b).decode('utf-8')
                    },
-                  'iou_thresh':.2,
+                  'iou_thresh':.5,
                   'max_outputs':8,
                   'score_thresh':.5
                   }
@@ -27,6 +27,7 @@ def main():
     results = json.loads(response.text)['outputs']
     boxes = np.array(results['detection_boxes'])
     class_names = results['detection_class_names']
+    print(class_names)
     class_confidence = results['detection_class_confidence']
     object_scores = results['detection_object_scores']
     for i, box in enumerate(boxes):

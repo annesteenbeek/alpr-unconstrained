@@ -72,7 +72,8 @@ def main(args):
                                        outputs={'detection_class_names':class_names,
                                                 'detection_object_scores':obj_scores_fin,
                                                 'detection_boxes':boxes_fin,
-                                                'detection_class_confidence':class_confidence},
+                                                'detection_class_confidence':class_confidence,
+                                                'detection_class_confidence_all':cls_scores_fin},
                                        legacy_init_op=tf.tables_initializer()
                                        )
 

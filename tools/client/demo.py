@@ -13,7 +13,10 @@ def main(config):
         ret, frame = cap.read()
         if not ret:
             break
-        lpr(frame, estimator)
+        results = lpr(frame, estimator)
+        if len(results) == 0:
+            [cap.read() for _ in range(10)]
+            continue
         cv2.imshow('lpr_demo', frame)
         if 27 == cv2.waitKey(0):
             break
@@ -43,11 +46,16 @@ def lpr(frame, estimator):
                                          cv2.FONT_HERSHEY_SIMPLEX,
                                          fontScale=font_scale,
                                          thickness=thickness)[0]
+                if vehicle.plate.text.is_valid:
+                    color = (255, 0, 255)
+                else:
+                    color = (255, 255, 0)
                 cv2.rectangle(frame, (l, t - h), (l + w, t),
-                              (255, 0, 255), cv2.FILLED)
+                              color, cv2.FILLED)
                 cv2.putText(frame, vehicle.plate.text.content,
                             (l, t), cv2.FONT_HERSHEY_SIMPLEX,
                             font_scale, (0, 255, 255), thickness)
+    return results
 
 
 if __name__ == '__main__':

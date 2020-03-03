@@ -26,3 +26,4 @@ services:
       - --model_config_file=config.proto
       - --port=8500
       - --rest_api_port=8501
+      - --per_process_gpu_memory_fraction=0.5
