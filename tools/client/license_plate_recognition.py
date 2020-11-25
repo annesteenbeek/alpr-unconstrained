@@ -29,6 +29,7 @@ class Plate:
     bottom_left: KeyPoint = None
     confidence: float = 0.
     text: Text = None
+    image: np.ndarray = None
 
     def get_keypoints(self):
         keypoints = []
@@ -47,6 +48,7 @@ class Vehicle:
     category: str = ''
     confidence: float = 0.
     plate: Plate = None
+    image: np.ndarray = None
 
     def get_orign(self):
         return np.array([self.left, self.top], np.int32)[None]
@@ -57,27 +59,35 @@ class LicensePlateRecognition:
         This class performs the LPR on a given image.
         The vehicle detector may be skipped by choice.
     """
-    def __init__(self, vehicle_cfg, plate_cfg, ocr_cfg):
+    def __init__(self, vehicle_cfg, plate_cfg, ocr_cfg, save_img=False):
         self.vehicle_detector = VehicleDetection(vehicle_cfg)
         self.plate_detector = PlateDetection(plate_cfg)
         self.ocr = PlateRecognition(ocr_cfg)
+
+        self.save_img = save_img
 
     def __call__(self, image_np):
         vehicles, images =  self.vehicle_detector(image_np)
 
         vehicles_w_license = []
         for v, im in zip(vehicles, images):
+            if self.save_img: v.image = im
+            # if max(im.shape[:2]) < 288: # image too small
+                # continue
             plate_and_im = self.plate_detector(im)
 
             if plate_and_im is not None:
                 v.plate = plate_and_im[0]
-                text = self.ocr(plate_and_im[1])
+                image = plate_and_im[1]
+                if self.save_img: v.plate.image = image
+                text = self.ocr(image)
                 if text is not None:
                     v.plate.text = text
 
             vehicles_w_license.append(v)
 
         return vehicles_w_license
+        
 
 
 class VehicleDetection:

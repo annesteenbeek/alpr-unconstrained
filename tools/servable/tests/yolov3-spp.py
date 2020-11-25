@@ -23,7 +23,7 @@ def main():
     image_b = cv2.imencode('.jpg', image_np)[1]
 
     response = requests.post(
-        'http://localhost:8501/v1/models/yolov3-spp:predict',
+        'http://localhost:8501/v1/models/vehicle_detector:predict',
         json={'inputs':{
                   'image_b':{
                       'b64':base64.b64encode(image_b).decode('utf-8')

@@ -6,7 +6,7 @@ import requests
 
 
 def main():
-    image_np_org = cv2.imread('samples/ocr/p_screenshot_02.03.2020srgan.png')
+    image_np_org = cv2.imread('samples/ocr/03016_0car_lp.png')
     assert image_np_org is not None
     image_b = cv2.imencode('.jpg', image_np_org)[1]
 

@@ -2,9 +2,6 @@ import itertools
 import re
 import sys
 
-from pdb import set_trace as breakpoint
-
-
 number_regex = re.compile(r'[1-9][0-9]{3}')
 weights = (9, 4, 5, 4, 3, 2)
 VALID_CHECKSUMS = tuple('A, Z, Y, X, U, T, S, R, P, M, L, K, J, H, G, E, D, C, B'.split(', '))

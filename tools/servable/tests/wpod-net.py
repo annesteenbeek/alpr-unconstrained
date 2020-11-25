@@ -6,7 +6,9 @@ import requests
 
 
 def main():
-    image_np_org = cv2.imread('samples/train-detector/00024.jpg')
+    # image_np_org = cv2.imread('samples/train-detector/00024.jpg')
+    image_np_org = cv2.imread('samples/train-detector/vehicle2.jpg')
+    # image_np_org = cv2.imread('samples/train-detector/vehicle.png')
     assert image_np_org is not None
     # preprocessing
     image_shape = image_np_org.shape[:2]
@@ -17,9 +19,10 @@ def main():
         image_np = cv2.resize(image_np_org, (0,0), fx=factor, fy=factor)
     elif min_side > 288:
         image_np = image_np_org
-    elif max_side < 288:
-        print('image too small')
-        return
+    # elif max_side < 288:
+        # print('image too small')
+        # return
+    image_np = image_np_org.copy()
     # making a request
     image_b = cv2.imencode('.jpg', image_np)[1]
     # image = open('samples/train-detector/00011.jpg', 'rb').read()
@@ -30,15 +33,16 @@ def main():
                   'image_b':{
                       'b64':base64.b64encode(image_b).decode('utf-8')
                    },
-                  'iou_thresh':.5,
+                  'iou_thresh':.1,
                   'max_outputs':4,
-                  'score_thresh':.1
+                  'score_thresh':.001
                   }
             }
     )
     assert response.status_code == 200, response.text
     # postprocessing
     results = json.loads(response.text)['outputs']
+    print(results)
     pts = np.array(results['corners'])
     scrs = results['scores']
     # visualization
