@@ -1,0 +1,15 @@
+FROM python:3.6.9
+
+WORKDIR /code
+
+COPY ./requirements.txt \
+    ./ocr-net.names \
+    ./demo.ini \
+    ./license_plate_recognition.py \
+    ./plate_knowledge.py \
+    ./service.py \
+    ./
+
+RUN pip install -r requirements.txt
+
+CMD [ "python", "./service.py"]

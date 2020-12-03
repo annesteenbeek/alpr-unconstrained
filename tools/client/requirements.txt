@@ -1,0 +1,5 @@
+flask
+numpy
+requests
+dataclasses
+opencv-python==3.4.9.31
