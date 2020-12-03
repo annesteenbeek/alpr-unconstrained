@@ -80,7 +80,7 @@ if [ ! -d "data/ocr/1" ]; then
   # Convert ocr-net to tensorflow servable
   cd "$DIR"
   python tools/servable/ocr-net.py \
-    darkflow/built_graph/ocr-net.pb \
+    data/built_graph/ocr-net.pb \
     data/ocr/1 \
     data/ocr/ocr-net.names
 fi
