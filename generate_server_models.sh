@@ -64,13 +64,14 @@ fi
 if [ ! -d "darkflow" ]; then
   git clone https://github.com/thtrieu/darkflow.git
   cd darkflow
+  git apply ../darkflow_offset.patch
   python setup.py build_ext --inplace
   cd ..
 fi
 
 if [ ! -d "data/ocr/1" ]; then
   cd data/
-  ./../darflow/flow \
+  ./../darkflow/flow \
     --model ocr/ocr-net.cfg \
     --load ocr/ocr-net.weights \
     --labels ocr/ocr-net.names \

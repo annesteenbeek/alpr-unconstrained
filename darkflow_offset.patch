@@ -1,0 +1,15 @@
+diff --git a/darkflow/utils/loader.py b/darkflow/utils/loader.py
+index 723560d..8f2d698 100644
+--- a/darkflow/utils/loader.py
++++ b/darkflow/utils/loader.py
+@@ -118,7 +118,9 @@ class weights_walker(object):
+                 shape = (), mode = 'r', offset = 0,
+                 dtype = '({})i4,'.format(4))
+             self.transpose = major > 1000 or minor > 1000
+-            self.offset = 16
++            # self.offset = 16
++            # https://sites.google.com/view/tensorflow-example-java-api/complete-guide-to-train-yolo/convert-darknet-weights-to-pb-file
++            self.offset = 20
+ 
+     def walk(self, size):
+         if self.eof: return None
